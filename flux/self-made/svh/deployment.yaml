@@ -36,8 +36,6 @@ spec:
       - name: tmp
         emptyDir:
           medium: Memory
-      imagePullSecrets:
-      - name: ghcr-secret
       containers:
       - name: web
         image: ghcr.io/sverdlovsky/svh-web:dev
