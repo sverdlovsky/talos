@@ -1,0 +1,22 @@
+apiVersion: cilium.io/v2
+kind: CiliumBGPClusterConfig
+metadata:
+  name: cluster
+spec:
+  nodeSelector:
+    matchLabels: {}
+  bgpInstances:
+  - name: default
+    localASN: 65010
+    peers:
+    - name: mikrotik-v4
+      peerASN: 65000
+      peerAddress: ${NODE_SUBNET_IPV4}.1
+      peerConfigRef:
+        name: mikrotik-v4
+    - name: mikrotik-v6
+      peerASN: 65000
+      peerAddress: ${NODE_SUBNET_IPV6}::1
+      peerConfigRef:
+        name: mikrotik-v6
+

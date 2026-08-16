@@ -1,0 +1,11 @@
+apiVersion: cilium.io/v2
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: ip-pool
+  namespace: kube-system
+spec:
+  blocks:
+  - start: ${LB_SUBNET_IPV4}.1
+    stop: ${LB_SUBNET_IPV4}.254
+  - start: ${LB_SUBNET_IPV6}::1
+    stop: ${LB_SUBNET_IPV6}::fe

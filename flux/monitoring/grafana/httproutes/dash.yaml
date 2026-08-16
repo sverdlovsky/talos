@@ -1,0 +1,19 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: dash
+  namespace: monitoring
+spec:
+  parentRefs:
+  - name: private
+    namespace: kube-system
+    sectionName: dash
+  hostnames:
+  - dash.${DOMAIN}
+  rules:
+  - backendRefs:
+    - name: kube-prometheus-stack-grafana
+      port: 80
+    timeouts:
+      request: 30m
+

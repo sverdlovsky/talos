@@ -1,0 +1,36 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+
+- cert-manager/.yaml
+- cert-manager/cert-manager/flux.yaml
+
+- default/.yaml
+- default/postfix/flux.yaml
+- default/postgres/flux.yaml
+- default/redis/flux.yaml
+- default/rustfs/flux.yaml
+
+- flux-system/
+- flux-system/helm.yaml
+
+- kube-system/.yaml
+- kube-system/cilium/flux.yaml
+- kube-system/gateway/flux.yaml
+- kube-system/hubble-metrics/flux.yaml
+- kube-system/hubble-ui/flux.yaml
+- kube-system/kube-dns/flux.yaml
+- kube-system/tetragon/flux.yaml
+
+- monitoring/.yaml
+- monitoring/grafana/flux.yaml
+- monitoring/kube-prometheus-stack/flux.yaml
+- monitoring/loki/flux.yaml
+- monitoring/prometheus/flux.yaml
+- monitoring/tempo/flux.yaml
+
+- self-made/.yaml
+- self-made/coredu/flux.yaml
+- self-made/svh/flux.yaml
+- self-made/yaoae/flux.yaml
+

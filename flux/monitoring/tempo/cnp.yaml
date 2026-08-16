@@ -1,0 +1,31 @@
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: tempo
+spec:
+  endpointSelector:
+    matchLabels:
+      app: tempo
+  ingress:
+  - fromEntities:
+    - cluster
+    toPorts:
+    - ports:
+      - port: "3200"
+        protocol: TCP
+  egress:
+  - toEndpoints:
+    - matchLabels:
+        k8s-app: kube-dns
+    toPorts:
+    - ports:
+      - port: "53"
+        protocol: ANY
+  - toEndpoints:
+    - matchLabels:
+        app: rustfs
+    toPorts:
+    - ports:
+      - port: "9000"
+        protocol: TCP
+

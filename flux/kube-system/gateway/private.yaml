@@ -1,0 +1,62 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: private
+  namespace: kube-system
+spec:
+  gatewayClassName: cilium
+  addresses:
+  - type: IPAddress
+    value: ${LB_SUBNET_IPV4}.2
+  - type: IPAddress
+    value: ${LB_SUBNET_IPV6}::2
+  listeners:
+  - name: dash
+    hostname: dash.${DOMAIN}
+    port: 443
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: dash-tls
+    allowedRoutes:
+      namespaces:
+        from: All
+  - name: fs
+    hostname: fs.${DOMAIN}
+    port: 443
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: fs-tls
+    allowedRoutes:
+      namespaces:
+        from: All
+  - name: prom
+    hostname: prom.${DOMAIN}
+    port: 443
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: prom-tls
+    allowedRoutes:
+      namespaces:
+        from: All
+  - name: top
+    hostname: top.${DOMAIN}
+    port: 443
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: top-tls
+    allowedRoutes:
+      namespaces:
+        from: All
+

@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: svh-nginx
+  namespace: self-made
+data:
+  default.conf: |
+    server {
+      listen 80;
+      listen [::]:80;
+      server_name ${DOMAIN};
+      root /var/www/html/default;
+
+      location / {
+        try_files $uri $uri/ /index.html;
+      }
+
+      location /health {
+        return 200;
+      }
+    }
+
+    server {
+      listen 80;
+      listen [::]:80;
+      server_name media.${DOMAIN};
+      root /var/www/html/media;
+
+      location / {
+        try_files $uri =404;
+      }
+
+      location /videos/ {
+        internal;
+        alias /var/www/html/media/video/;
+      }
+    }
+

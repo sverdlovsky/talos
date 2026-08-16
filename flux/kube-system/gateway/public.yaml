@@ -1,0 +1,134 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: public
+  namespace: kube-system
+spec:
+  gatewayClassName: cilium
+  addresses:
+  - type: IPAddress
+    value: ${LB_SUBNET_IPV4}.1
+  - type: IPAddress
+    value: ${LB_SUBNET_IPV6}::1
+  listeners:
+  - name: auth
+    hostname: auth.${DOMAIN}
+    port: 443
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: auth-tls
+    allowedRoutes:
+      namespaces:
+        from: All
+  - name: learn
+    hostname: learn.${DOMAIN}
+    port: 443
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: learn-tls
+    allowedRoutes:
+      namespaces:
+        from: All
+  - name: learn-api
+    hostname: api.learn.${DOMAIN}
+    port: 443
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: learn-api-tls
+    allowedRoutes:
+      namespaces:
+        from: All
+  - name: learn-auth
+    hostname: auth.learn.${DOMAIN}
+    port: 443
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: learn-auth-tls
+    allowedRoutes:
+      namespaces:
+        from: All
+  - name: learn-media
+    hostname: media.learn.${DOMAIN}
+    port: 443
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: learn-media-tls
+    allowedRoutes:
+      namespaces:
+        from: All
+  - name: loki
+    hostname: loki.${DOMAIN}
+    port: 3100
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: loki-tls
+    allowedRoutes:
+      namespaces:
+        from: All
+  - name: video
+    hostname: video.${DOMAIN}
+    port: 443
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: video-tls
+    allowedRoutes:
+      namespaces:
+        from: All
+  - name: video-api
+    hostname: api.video.${DOMAIN}
+    port: 443
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: video-api-tls
+    allowedRoutes:
+      namespaces:
+        from: All
+  - name: video-auth
+    hostname: auth.video.${DOMAIN}
+    port: 443
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: video-auth-tls
+    allowedRoutes:
+      namespaces:
+        from: All
+  - name: video-media
+    hostname: media.video.${DOMAIN}
+    port: 443
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: video-media-tls
+    allowedRoutes:
+      namespaces:
+        from: All
+

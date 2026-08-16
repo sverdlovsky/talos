@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: video-auth
+  namespace: kube-system
+spec:
+  secretName: video-auth-tls
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt
+  dnsNames:
+  - auth.video.${DOMAIN}
+

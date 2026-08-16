@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: yaoae
+  namespace: self-made
+  labels:
+    app: yaoae
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: yaoae
+  template:
+    metadata:
+      labels:
+        app: yaoae
+    spec:
+      tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+      volumes:
+      - name: tmp
+        emptyDir:
+          medium: Memory
+      imagePullSecrets:
+      - name: ghcr-secret
+      containers:
+      - name: auth
+        image: ghcr.io/sverdlovsky/yaoae:latest
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        args:
+        - "--host"
+        - "::"
+        - "--port"
+        - "8080"
+        - "--forwarded-allow-ips"
+        - "*"
+        - "--proxy-headers"
+        env:
+        - name: DOMAIN
+          value: ${DOMAIN}
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: postgres-yaoae
+              key: url
+        - name: GOOGLE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: auth
+              key: google_id
+        - name: GOOGLE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: auth
+              key: google_secret
+        - name: YANDEX_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: auth
+              key: yandex_id
+        - name: YANDEX_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: auth
+              key: yandex_secret
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: auth
+              key: key
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: auth
+              key: jwt
+        - name: LISTEN_ADDR
+          value: "[::]:8080"
+        - name: REDIS_HOST
+          value: redis.default
+        - name: SMTP_HOST
+          value: postfix.default
+        - name: SMTP_FROM
+          value: no-reply@${DOMAIN}
+        ports:
+        - name: auth
+          containerPort: 8080
+        resources:
+          requests:
+            cpu: 0.1
+            memory: 64Mi
+            ephemeral-storage: 128Mi
+          limits:
+            cpu: 4
+            memory: 256Mi
+            ephemeral-storage: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+

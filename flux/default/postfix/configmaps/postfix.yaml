@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postfix
+  namespace: default
+data:
+  main.cf: |
+    myhostname = mail.${DOMAIN}
+    mydomain = ${DOMAIN}
+    myorigin = ${DOMAIN}
+    mydestination = mail.${DOMAIN}, localhost
+    relay_domains =
+
+    mynetworks =
+        127.0.0.0/8
+        10.0.0.0/8
+
+    inet_interfaces = all
+    inet_protocols = ipv4
+
+    smtpd_banner = main.${DOMAIN} ESMTP
+    smtpd_helo_required = yes
+
+    smtp_tls_loglevel = 1
+    smtp_tls_security_level = encrypt
+    smtpd_tls_security_level = encrypt
+    smtpd_tls_auth_only = yes
+    smtpd_tls_cert_file = /etc/postfix/tls/tls.crt
+    smtpd_tls_key_file = /etc/postfix/tls/tls.key
+
+    smtpd_recipient_restrictions =
+        permit_mynetworks
+        reject_unauth_destination
+
+    smtpd_milters = unix:/run/opendkim.sock
+    non_smtpd_milters = unix:/run/opendkim.sock
+
+    milter_default_action = reject
+    milter_protocol = 6
+
+    disable_vrfy_command = yes
+
+    maximal_queue_lifetime = 5d
+    bounce_queue_lifetime = 1d
+
+  master.cf: |
+    smtp inet n - n - - smtpd
+
+    pickup unix n - n 60 1 pickup
+    cleanup unix n - n - 0 cleanup
+    qmgr unix n - n 300 1 qmgr
+    tlsmgr unix - - n 1000? 1 tlsmgr
+    rewrite unix - - n - - trivial-rewrite
+    bounce unix - - n - 0 bounce
+    defer unix - - n - 0 bounce
+    trace unix - - n - 0 bounce
+    verify unix - - n - 1 verify
+    flush unix n - n 1000? 0 flush
+    proxymap unix - - n - - proxymap
+    smtp unix - - n - - smtp
+

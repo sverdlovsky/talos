@@ -1,0 +1,123 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postfix
+  namespace: default
+  labels:
+    app: postfix
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postfix
+  template:
+    metadata:
+      labels:
+        app: postfix
+    spec:
+      tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+      volumes:
+      - name: etc-postfix
+        configMap:
+          name: postfix
+      - name: etc-opendkim
+        configMap:
+          name: opendkim
+      - name: etc-postfix-tls
+        secret:
+          secretName: mail-tls
+      - name: etc-opendkim-keys
+        secret:
+          secretName: opendkim
+      - name: var-spool-postfix
+        emptyDir: {}
+      - name: run
+        emptyDir:
+          medium: Memory
+      - name: tmp
+        emptyDir:
+          medium: Memory
+      imagePullSecrets:
+      - name: ghcr-secret
+      containers:
+      - name: postfix
+        image: ghcr.io/sverdlovsky/docker-postfix:latest
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: etc-postfix
+          mountPath: /etc/postfix/main.cf
+          subPath: main.cf
+        - name: etc-postfix
+          mountPath: /etc/postfix/master.cf
+          subPath: master.cf
+        - name: etc-postfix-tls
+          mountPath: /etc/postfix/tls
+          readOnly: true
+        - name: var-spool-postfix
+          mountPath: /var/spool/postfix
+        - name: run
+          mountPath: /run
+        - name: tmp
+          mountPath: /tmp
+        ports:
+        - name: smtp
+          containerPort: 25
+        resources:
+          requests:
+            cpu: 0.1
+            memory: 32Mi
+            ephemeral-storage: 128Mi
+          limits:
+            cpu: 2
+            memory: 256Mi
+            ephemeral-storage: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          #readOnlyRootFilesystem: true
+          #capabilities:
+          #  drop:
+          #  - ALL
+          #  add:
+          #  - NET_BIND_SERVICE
+      - name: opendkim
+        image: ghcr.io/sverdlovsky/docker-opendkim:latest
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: etc-opendkim
+          mountPath: /etc/opendkim
+          readOnly: true
+        - name: etc-opendkim-keys
+          mountPath: /etc/opendkim/keys
+          readOnly: true
+        - name: run
+          mountPath: /run
+        - name: tmp
+          mountPath: /tmp
+        resources:
+          requests:
+            cpu: 0.1
+            memory: 32Mi
+            ephemeral-storage: 128Mi
+          limits:
+            cpu: 2
+            memory: 256Mi
+            ephemeral-storage: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+      #securityContext:
+      #  seccompProfile:
+      #    type: RuntimeDefault
+      #  runAsNonRoot: true
+      #  runAsUser: 10001
+      #  runAsGroup: 10001
+      #  fsGroup: 10001
+

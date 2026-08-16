@@ -1,0 +1,21 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: learn-auth
+  namespace: self-made
+spec:
+  parentRefs:
+  - name: public
+    namespace: kube-system
+    sectionName: learn-auth
+  hostnames:
+  - auth.learn.${DOMAIN}
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: yaoae
+      port: 8080
+

@@ -1,0 +1,23 @@
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: rustfs
+spec:
+  endpointSelector:
+    matchLabels:
+      app: rustfs
+  ingress:
+  - fromEntities:
+    - cluster
+    toPorts:
+    - ports:
+      - port: "9000"
+        protocol: TCP
+  - fromEntities:
+    - ingress
+    toPorts:
+    - ports:
+      - port: "9001"
+        protocol: TCP
+  egress: []
+

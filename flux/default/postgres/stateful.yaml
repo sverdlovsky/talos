@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: default
+  labels:
+    app: postgres
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: apps-postgres
+      - name: var-run-postgresql
+        emptyDir: {}
+      - name: tmp
+        emptyDir:
+          medium: Memory
+      containers:
+      - name: postgres
+        image: docker.io/library/postgres:18.3-alpine3.23
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/18/docker
+        - name: var-run-postgresql
+          mountPath: /var/run/postgresql
+        - name: tmp
+          mountPath: /tmp
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: postgres
+              key: db
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres
+              key: user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres
+              key: pass
+        - name: DB_STORAGE_TYPE
+          value: SSD
+        ports:
+        - name: postgres
+          containerPort: 5432
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - postgres
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        resources:
+          requests:
+            cpu: 0.2
+            memory: 1Gi
+            ephemeral-storage: 1Gi
+          limits:
+            cpu: 12
+            memory: 12Gi
+            ephemeral-storage: 10Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 70
+        runAsGroup: 70
+        fsGroup: 70
+        fsGroupChangePolicy: OnRootMismatch
+

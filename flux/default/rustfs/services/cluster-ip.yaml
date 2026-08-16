@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rustfs
+  namespace: default
+spec:
+  type: ClusterIP
+  ipFamilyPolicy: PreferDualStack
+  selector:
+    app: rustfs
+  ports:
+  - name: s3-api
+    port: 9000
+    targetPort: 9000
+    protocol: TCP
+  - name: web-ui
+    port: 9001
+    targetPort: 9001
+    protocol: TCP
+

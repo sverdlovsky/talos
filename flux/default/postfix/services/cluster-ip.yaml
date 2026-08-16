@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postfix
+  namespace: default
+spec:
+  type: ClusterIP
+  ipFamilyPolicy: PreferDualStack
+  selector:
+    app: postfix
+  ports:
+  - name: smtp
+    port: 25
+    targetPort: 25
+    protocol: TCP
+

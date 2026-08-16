@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: loki
+  namespace: monitoring
+  labels:
+    app: loki
+spec:
+  serviceName: loki
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loki
+  template:
+    metadata:
+      labels:
+        app: loki
+    spec:
+      volumes:
+      #- name: loki-config
+      #  configMap:
+      #    name: loki
+      - name: var-loki
+        emptyDir: {}
+      - name: loki
+        emptyDir: {}
+      - name: tmp
+        emptyDir:
+          medium: Memory
+      containers:
+      - name: loki
+        image: docker.io/grafana/loki:3.7.3
+        volumeMounts:
+        #- name: loki-config
+        #  mountPath: /etc/loki/local-config.yaml
+        #  subPath: local-config.yaml
+        - name: var-loki
+          mountPath: /var/loki
+        - name: loki
+          mountPath: /loki
+        - name: tmp
+          mountPath: /tmp
+        ports:
+        - name: loki
+          containerPort: 3100
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: loki
+          initialDelaySeconds: 30
+          periodSeconds: 15
+        resources:
+          requests:
+            cpu: 0.1
+            memory: 64Mi
+            ephemeral-storage: 128Mi
+          limits:
+            cpu: 2
+            memory: 1Gi
+            ephemeral-storage: 10Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+

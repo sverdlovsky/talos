@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coredu
+  namespace: self-made
+  labels:
+    app: coredu
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: coredu
+  template:
+    metadata:
+      labels:
+        app: coredu
+    spec:
+      tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+      volumes:
+      - name: etc-nginx-conf
+        configMap:
+          name: coredu-nginx
+      - name: var-cache-nginx
+        emptyDir: {}
+      - name: run
+        emptyDir:
+          medium: Memory
+      - name: tmp
+        emptyDir:
+          medium: Memory
+      imagePullSecrets:
+      - name: ghcr-secret
+      containers:
+      - name: web
+        image: ghcr.io/sverdlovsky/core-edu-web:dev
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: etc-nginx-conf
+          mountPath: /etc/nginx/conf.d/default.conf
+          subPath: default.conf
+        - name: var-cache-nginx
+          mountPath: /var/cache/nginx
+        - name: run
+          mountPath: /run
+        - name: tmp
+          mountPath: /tmp
+        ports:
+        - name: web
+          containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            cpu: 0.1
+            memory: 32Mi
+            ephemeral-storage: 128Mi
+          limits:
+            cpu: 4
+            memory: 256Mi
+            ephemeral-storage: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - NET_BIND_SERVICE
+      - name: api
+        image: ghcr.io/sverdlovsky/core-edu-api:dev
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        env:
+        - name: DOMAIN
+          value: learn.${DOMAIN}
+        - name: ADMIN_EMAIL
+          value: ${EMAIL}
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: postgres-coredu
+              key: url
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: auth
+              key: jwt
+        - name: LISTEN_IPV6
+          value: "true"
+        ports:
+        - name: api
+          containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            cpu: 0.1
+            memory: 64Mi
+            ephemeral-storage: 128Mi
+          limits:
+            cpu: 4
+            memory: 256Mi
+            ephemeral-storage: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        fsGroup: 101
+

@@ -1,0 +1,47 @@
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: yaoae
+spec:
+  endpointSelector:
+    matchLabels:
+      app: yaoae
+  ingress:
+  - fromEntities:
+    - ingress
+    toPorts:
+    - ports:
+      - port: "8080"
+        protocol: TCP
+  egress:
+  - toEntities:
+    - world
+  - toEndpoints:
+    - matchLabels:
+        k8s-app: kube-dns
+    toPorts:
+    - ports:
+      - port: "53"
+        protocol: ANY
+  - toEndpoints:
+    - matchLabels:
+        app: postfix
+    toPorts:
+    - ports:
+      - port: "25"
+        protocol: ANY
+  - toEndpoints:
+    - matchLabels:
+        app: redis
+    toPorts:
+    - ports:
+      - port: "6379"
+        protocol: TCP
+  - toEndpoints:
+    - matchLabels:
+        app: postgres
+    toPorts:
+    - ports:
+      - port: "5432"
+        protocol: TCP
+

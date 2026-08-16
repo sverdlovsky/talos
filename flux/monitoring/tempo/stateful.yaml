@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: tempo
+  namespace: monitoring
+  labels:
+    app: tempo
+spec:
+  serviceName: tempo
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tempo
+  template:
+    metadata:
+      labels:
+        app: tempo
+    spec:
+      volumes:
+      - name: etc-tempo
+        configMap:
+          name: tempo
+      - name: var-tempo
+        emptyDir: {}
+      - name: tmp
+        emptyDir:
+          medium: Memory
+      containers:
+      - name: tempo
+        image: docker.io/grafana/tempo:3.0.2
+        volumeMounts:
+        - name: etc-tempo
+          mountPath: /etc/tempo/tempo.yaml
+          subPath: tempo.yaml
+        - name: var-tempo
+          mountPath: /var/tempo
+        - name: tmp
+          mountPath: /tmp
+        args:
+        - "-config.file=/etc/tempo/tempo.yaml"
+        ports:
+        - name: tempo
+          containerPort: 3200
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: tempo
+          initialDelaySeconds: 30
+          periodSeconds: 15
+        resources:
+          requests:
+            cpu: 0.1
+            memory: 64Mi
+            ephemeral-storage: 128Mi
+          limits:
+            cpu: 2
+            memory: 1Gi
+            ephemeral-storage: 10Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+

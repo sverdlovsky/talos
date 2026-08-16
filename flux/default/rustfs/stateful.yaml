@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rustfs
+  namespace: default
+  labels:
+    app: rustfs
+spec:
+  serviceName: rustfs
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rustfs
+  template:
+    metadata:
+      labels:
+        app: rustfs
+    spec:
+      tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: apps-rustfs
+      - name: logs
+        emptyDir: {}
+      - name: tmp
+        emptyDir:
+          medium: Memory
+      containers:
+      - name: rustfs
+        image: docker.io/rustfs/rustfs:latest
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: logs
+          mountPath: /logs
+        - name: tmp
+          mountPath: /tmp
+        env:
+        - name: RUSTFS_BUFFER_PROFILE
+          value: WebWorkload
+        - name: RUSTFS_CONSOLE_ENABLE
+          value: "true"
+        - name: RUSTFS_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: rustfs
+              key: access_key
+        - name: RUSTFS_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: rustfs
+              key: secret_key
+        #command: ["/bin/sh", "-c", "id"]
+        #command: ["/bin/sh", "-c", "ls -al /data /logs"]
+        ports:
+        - name: rustfs
+          containerPort: 9000
+        resources:
+          requests:
+            cpu: 0.2
+            memory: 256Mi
+            ephemeral-storage: 256Mi
+          limits:
+            cpu: 8
+            memory: 8Gi
+            ephemeral-storage: 10Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+
