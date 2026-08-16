@@ -86,7 +86,7 @@ cilium install \
     --set gatewayAPI.service.externalTrafficPolicy=Local \
     --set routingMode=native \
     --set ipv4.enabled=true \
-    --set enableIPv4Masquerade=false \
+    --set enableIPv4Masquerade=true \
     --set ipv4NativeRoutingCIDR=192.168.64.0/22 \
     --set ipv6.enabled=true \
     --set enableIPv6Masquerade=false \
@@ -110,8 +110,13 @@ flux bootstrap github \
     --repository=talos \
     --branch=main \
     --path=flux \
-    --personal \
-    --private
+    --personal
+```
+
+After BGP configuration:
+
+```sh
+cilium upgrade --set enableIPv4Masquerade=false
 ```
 
 Done.

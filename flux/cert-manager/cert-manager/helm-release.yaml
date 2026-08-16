@@ -14,5 +14,6 @@ spec:
         name: jetstack
         namespace: flux-system
   values:
-    installCRDs: true
+    crds:
+      enabled: true
 
