@@ -49,26 +49,6 @@ spec:
             secretKeyRef:
               name: postgres-yaoae
               key: url
-        - name: GOOGLE_CLIENT_ID
-          valueFrom:
-            secretKeyRef:
-              name: auth
-              key: google_id
-        - name: GOOGLE_CLIENT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: auth
-              key: google_secret
-        - name: YANDEX_CLIENT_ID
-          valueFrom:
-            secretKeyRef:
-              name: auth
-              key: yandex_id
-        - name: YANDEX_CLIENT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: auth
-              key: yandex_secret
         - name: SECRET_KEY
           valueFrom:
             secretKeyRef:
