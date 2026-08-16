@@ -4,6 +4,7 @@ resources:
 
 - cert-manager/.yaml
 - cert-manager/cert-manager/flux.yaml
+- cert-manager/cert-manager/helm/flux.yaml
 
 - default/.yaml
 - default/postfix/flux.yaml
